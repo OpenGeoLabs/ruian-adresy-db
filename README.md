@@ -49,6 +49,41 @@ předpokládáno, že existuje soubor `/usr/lib/x86_64-linux-gnu/mod_spatialite.
 ruian-adressses2db.py --connection "sqlite:///adresy.sqlite"
 ```
 
+## Database schema
+```
+                                       Table "addresses"
+┌───────────────────────┬──────────────────────┬───────────┬──────────┬──────────────────────────────┐
+│        Column         │         Type         │ Collation │ Nullable │           Default            │
+├───────────────────────┼──────────────────────┼───────────┼──────────┼──────────────────────────────┤
+│ kod_adm               │ integer              │           │ not null │ nextval('addresses_kod_adm_s…│
+│                       │                      │           │          │…eq'::regclass)               │
+│ obec_kod              │ integer              │           │          │                              │
+│ obec_nazev            │ character varying    │           │          │                              │
+│ momc_kod              │ integer              │           │          │                              │
+│ momc_nazev            │ character varying    │           │          │                              │
+│ mop_kod               │ integer              │           │          │                              │
+│ mop_nazev             │ character varying    │           │          │                              │
+│ cast_obce_kod         │ integer              │           │          │                              │
+│ cast_obce_nazev       │ character varying    │           │          │                              │
+│ ulice_kod             │ integer              │           │          │                              │
+│ ulice_nazev           │ character varying    │           │          │                              │
+│ typ_so                │ character varying    │           │          │                              │
+│ cislo_domovni         │ integer              │           │          │                              │
+│ cislo_orientacni      │ integer              │           │          │                              │
+│ cislo_orientacni_znak │ character varying    │           │          │                              │
+│ psc                   │ integer              │           │          │                              │
+│ plati_od              │ date                 │           │          │                              │
+│ geometry              │ geometry(Point,4326) │           │          │                              │
+│ geometry_jtsk         │ geometry(Point,5514) │           │          │                              │
+└───────────────────────┴──────────────────────┴───────────┴──────────┴──────────────────────────────┘
+Indexes:
+    "addresses_pkey" PRIMARY KEY, btree (kod_adm)
+    "idx_addresses_geometry" gist (geometry)
+    "idx_addresses_geometry_jtsk" gist (geometry_jtsk)
+````
+
+Viz [dokumentace k adresním bodům RUIAN](http://vdp.cuzk.cz/vymenny_format/csv/ad-csv-struktura.pdf)
+
 ## Licence
 
 This program is free software: you can redistribute it and/or modify
