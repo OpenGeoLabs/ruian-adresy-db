@@ -8,3 +8,4 @@ requests==2.19.1
 Shapely==1.6.4.post2
 SQLAlchemy==1.2.12
 urllib3==1.23
+pygdaltools

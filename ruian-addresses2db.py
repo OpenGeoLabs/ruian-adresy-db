@@ -89,21 +89,28 @@ class Address(Base):
     geometry_jtsk = Column(Geometry('POINT', srid=5514))
 
 
-def get_data():
+def get_data(zipfile=None):
     """Download fresh data from CUZK server - always last day of previous month
     """
 
     now = datetime.datetime.now()
-    days = monthrange(year=now.year, month=now.month-1)
-    date_name = "{}{:02d}{}".format(now.year, now.month-1, days[1])
+    month = now.month - 1
+    if month == 0:
+        month = 12
+    days = monthrange(year=now.year, month=month)
+    date_name = "{}{:02d}{}".format(now.year, month, days[1])
     url = DATA_URL.format(date_name)
     out_dir_name = tempfile.mkdtemp(prefix="addresses")
     out_temp_name = tempfile.mktemp(dir=out_dir_name, suffix=".zip")
 
-    with open(out_temp_name, "wb") as out_zip:
-        r = requests.get(url, stream=True)
-        for chunk in r.iter_content(8192):
-            out_zip.write(chunk)
+    if not zipfile:
+        with open(out_temp_name, "wb") as out_zip:
+            r = requests.get(url, stream=True)
+            for chunk in r.iter_content(8192):
+                out_zip.write(chunk)
+
+    else:
+        out_temp_name = zipfile
 
     with ZipFile(out_temp_name, "r") as myzip:
         myzip.extractall(path=out_dir_name)
@@ -144,7 +151,7 @@ def get_engine(connection, verbose=False):
     return engine
 
 
-def main(connection, schema=None, verbose=False):
+def main(connection, schema=None, verbose=False, zipfile=None):
 
     engine = get_engine(connection, verbose)
     if schema:
@@ -169,7 +176,7 @@ def main(connection, schema=None, verbose=False):
 
     data = []
 
-    src_dir = get_data()
+    src_dir = get_data(zipfile)
 
     for f in os.listdir(src_dir):
         f = os.path.join(src_dir, f)
@@ -229,6 +236,9 @@ def parse_args():
     parser.add_argument('--schema',
                         default=None,
                         help='Database schema')
+    parser.add_argument('--input',
+                        default=None,
+                        help='Input ZIP file')
 
     args = parser.parse_args()
 
@@ -238,4 +248,4 @@ def parse_args():
 if __name__ == "__main__":
     args = parse_args()
 
-    main(args.connection, args.schema, args.v)
+    main(args.connection, args.schema, args.v, args.input)
