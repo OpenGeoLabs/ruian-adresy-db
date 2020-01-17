@@ -209,8 +209,13 @@ def import_zsj(connection, schema, verbose, zipfile):
     conn = gdaltools.PgConnectionString(**connection_params)
 
     logger.info('Importing kraje')
-    ogr.set_input(zsj_file_name, table_name="kraje")
+    ogr.set_input(zsj_file_name, table_name="Kraje")
     ogr.set_output(conn, table_name="kraje", srs="EPSG:5514")
+    ogr.execute()
+
+    logger.info('Importing vusc')
+    ogr.set_input(zsj_file_name, table_name="Vusc")
+    ogr.set_output(conn, table_name="vusc", srs="EPSG:5514")
     ogr.execute()
 
     logger.info('Importing okresy')

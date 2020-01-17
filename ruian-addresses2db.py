@@ -95,16 +95,20 @@ def get_data(zipfile=None):
 
     now = datetime.datetime.now()
     month = now.month - 1
+    year = now.year
     if month == 0:
         month = 12
-    days = monthrange(year=now.year, month=month)
-    date_name = "{}{:02d}{}".format(now.year, month, days[1])
+    if month == 12:
+        year = year - 1
+    days = monthrange(year=year, month=month)
+    date_name = "{}{:02d}{}".format(year, month, days[1])
     url = DATA_URL.format(date_name)
     out_dir_name = tempfile.mkdtemp(prefix="addresses")
     out_temp_name = tempfile.mktemp(dir=out_dir_name, suffix=".zip")
 
     if not zipfile:
         with open(out_temp_name, "wb") as out_zip:
+            print(url)
             r = requests.get(url, stream=True)
             for chunk in r.iter_content(8192):
                 out_zip.write(chunk)
