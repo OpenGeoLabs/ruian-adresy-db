@@ -193,7 +193,8 @@ def _get_connection(connection):
     return data
 
 
-def import_zsj(connection, schema, verbose, zipfile):
+def import_zsj(connection, schema, zipfile, kraje=False, vusc=False,
+        okresy=False, orp=False, pou=False):
 
     global logger
     zsj_file_name = get_data_zsj(ZSJ_URL, "zsj", zipfile)
@@ -208,33 +209,39 @@ def import_zsj(connection, schema, verbose, zipfile):
     )
     conn = gdaltools.PgConnectionString(**connection_params)
 
-    logger.info('Importing kraje')
-    ogr.set_input(zsj_file_name, table_name="Kraje")
-    ogr.set_output(conn, table_name="kraje", srs="EPSG:5514")
-    ogr.execute()
+    if kraje:
+        logger.info('Importing kraje')
+        ogr.set_input(zsj_file_name, table_name="Kraje")
+        ogr.set_output(conn, table_name="kraje", srs="EPSG:5514")
+        ogr.execute()
 
-    logger.info('Importing vusc')
-    ogr.set_input(zsj_file_name, table_name="Vusc")
-    ogr.set_output(conn, table_name="vusc", srs="EPSG:5514")
-    ogr.execute()
+    if vusc:
+        logger.info('Importing vusc')
+        ogr.set_input(zsj_file_name, table_name="Vusc")
+        ogr.set_output(conn, table_name="vusc", srs="EPSG:5514")
+        ogr.execute()
 
-    logger.info('Importing okresy')
-    ogr.set_input(zsj_file_name, table_name="Okresy")
-    ogr.set_output(conn, table_name="okresy", srs="EPSG:5514")
-    ogr.execute()
+    if okresy:
+        logger.info('Importing okresy')
+        ogr.set_input(zsj_file_name, table_name="Okresy")
+        ogr.set_output(conn, table_name="okresy", srs="EPSG:5514")
+        ogr.execute()
 
-    logger.info('Importing orp')
-    ogr.set_input(zsj_file_name, table_name="Orp")
-    ogr.set_output(conn, table_name="orp", srs="EPSG:5514")
-    ogr.execute()
+    if orp:
+        logger.info('Importing orp')
+        ogr.set_input(zsj_file_name, table_name="Orp")
+        ogr.set_output(conn, table_name="orp", srs="EPSG:5514")
+        ogr.execute()
 
-    logger.info('Importing pou')
-    ogr.set_input(zsj_file_name, table_name="Pou")
-    ogr.set_output(conn, table_name="pou", srs="EPSG:5514")
-    ogr.execute()
+    if pou:
+        logger.info('Importing pou')
+        ogr.set_input(zsj_file_name, table_name="Pou")
+        ogr.set_output(conn, table_name="pou", srs="EPSG:5514")
+        ogr.execute()
 
 
-def import_obce(connection, schema, verbose):
+def import_obce(connection, schema, obec=False, ku=False, ulice=False,
+        parcely=False, stav_objekty=False, adresy=False):
 
     global logger
 
@@ -256,9 +263,36 @@ def import_obce(connection, schema, verbose):
             obec_file = get_obec_file(kod)
 
             logger.info(f"Importing obec {obec['kod']} - {obec['nazev']}")
-            ogr.set_input(obec_file, table_name="Obce")
-            ogr.set_output(conn, table_name="obce", srs="EPSG:5514")
-            ogr.execute()
+
+            if obec:
+                ogr.set_input(obec_file, table_name="Obce")
+                ogr.set_output(conn, table_name="obce", srs="EPSG:5514")
+                ogr.execute()
+
+            if ku:
+                ogr.set_input(obec_file, table_name="KatastralniUzemi")
+                ogr.set_output(conn, table_name="katastralni_uzemi", srs="EPSG:5514")
+                ogr.execute()
+
+            if ulice:
+                ogr.set_input(obec_file, table_name="Ulice")
+                ogr.set_output(conn, table_name="ulice", srs="EPSG:5514")
+                ogr.execute()
+
+            if parcely:
+                ogr.set_input(obec_file, table_name="Parcely")
+                ogr.set_output(conn, table_name="parcely", srs="EPSG:5514")
+                ogr.execute()
+
+            if stav_objekty:
+                ogr.set_input(obec_file, table_name="StavebniObjekty")
+                ogr.set_output(conn, table_name="stavebni_objekty", srs="EPSG:5514")
+                ogr.execute()
+
+            if adresy:
+                ogr.set_input(obec_file, table_name="AdresniMista")
+                ogr.set_output(conn, table_name="adresni_mista", srs="EPSG:5514")
+                ogr.execute()
 
             # from now on, just append
             ogr.set_output_mode(
@@ -267,17 +301,36 @@ def import_obce(connection, schema, verbose):
             )
 
 
-def main(connection, schema=None, verbose=False, zipfile=None):
+def main(connection, schema=None, verbose=False, zipfile=None,
+        kraje=False, vusc=False, okresy=False, orp=False, pou=False,
+        obec=False, ku=False, ulice=False, parcely=False, stav_objekty=False,
+        adresy=False):
 
     global logger
-    import_zsj(connection, schema, verbose, zipfile)
-    import_obce(connection, schema, verbose)
+
+    if kraje or vusc or okresy or orp or pou:
+        import_zsj(connection, schema, verbose, zipfile)
+    if obec or ku or ulice or parcely or stav_objekty or adresy:
+        import_obce(connection, schema, obec, ku, ulice,
+                parcely, stav_objekty, adresy)
 
 def parse_args():
     parser = argparse.ArgumentParser(
         description='Import address points from RUIAN to PostgreSQL database'
     )
     parser.add_argument('-v', action='store_true', help='Verbose')
+    parser.add_argument('-kr', action='store_true', help='Naimportovat kraje')
+    parser.add_argument('-vc', action='store_true', help='Naimportovat vyšší celky')
+    parser.add_argument('-ok', action='store_true', help='Naimportovat okrey')
+    parser.add_argument('-op', action='store_true', help='Naimportovat ORP')
+    parser.add_argument('-pu', action='store_true', help='Naimportovat POU')
+    parser.add_argument('-ob', action='store_true', help='Naimportovat obce')
+    parser.add_argument('-ku', action='store_true', help='Naimportovat katastrální území')
+    parser.add_argument('-ul', action='store_true', help='Naimportovat ulice')
+    parser.add_argument('-pa', action='store_true', help='Naimportovat parcely')
+    parser.add_argument('-so', action='store_true', help='Naimportovat stavební objekty')
+    parser.add_argument('-ad', action='store_true', help='Naimportovat adresni mista')
+
     parser.add_argument('--connection', required=True,
             help='OGR Postgres Connection string https://gdal.org/drivers/vector/pg.html')
     parser.add_argument('--schema',
@@ -295,4 +348,6 @@ def parse_args():
 if __name__ == "__main__":
     args = parse_args()
 
-    main(args.connection, args.schema, args.v, args.input)
+    main(args.connection, args.schema, args.v, args.input,
+            args.kr, args.vc, args.ok, args.op, args.pu,
+            args.ob, args.ku, args.ul, args.pa, args.so, args.ad)
