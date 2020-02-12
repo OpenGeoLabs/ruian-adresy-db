@@ -309,7 +309,9 @@ def main(connection, schema=None, verbose=False, zipfile=None,
     global logger
 
     if kraje or vusc or okresy or orp or pou:
-        import_zsj(connection, schema, verbose, zipfile)
+        import_zsj(connection, schema, verbose, zipfile,
+                kraje, vusc, okresy, orp, pou)
+
     if obec or ku or ulice or parcely or stav_objekty or adresy:
         import_obce(connection, schema, obec, ku, ulice,
                 parcely, stav_objekty, adresy)
