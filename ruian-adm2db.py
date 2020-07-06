@@ -240,8 +240,8 @@ def import_zsj(connection, schema, zipfile, kraje=False, vusc=False,
         ogr.execute()
 
 
-def import_obce(connection, schema, obec=False, ku=False, ulice=False,
-        parcely=False, stav_objekty=False, adresy=False):
+def import_obce(connection, schema, obec=False, ku=False, casti_obci=False, ulice=False,
+        casti_obci=False, parcely=False, stav_objekty=False, adresy=False):
 
     global logger
 
@@ -274,6 +274,11 @@ def import_obce(connection, schema, obec=False, ku=False, ulice=False,
                 ogr.set_output(conn, table_name="katastralni_uzemi", srs="EPSG:5514")
                 ogr.execute()
 
+            if casti_obci:
+                ogr.set_input(obec_file, table_name="Ulice")
+                ogr.set_output(conn, table_name="CastiObci", srs="EPSG:5514")
+                ogr.execute()
+
             if ulice:
                 ogr.set_input(obec_file, table_name="Ulice")
                 ogr.set_output(conn, table_name="ulice", srs="EPSG:5514")
@@ -303,17 +308,17 @@ def import_obce(connection, schema, obec=False, ku=False, ulice=False,
 
 def main(connection, schema=None, verbose=False, zipfile=None,
         kraje=False, vusc=False, okresy=False, orp=False, pou=False,
-        obec=False, ku=False, ulice=False, parcely=False, stav_objekty=False,
+        obec=False, ku=False, casti_obci=False, ulice=False, parcely=False, stav_objekty=False,
         adresy=False):
 
     global logger
 
     if kraje or vusc or okresy or orp or pou:
-        import_zsj(connection, schema, verbose, zipfile,
+        import_zsj(connection, schema, zipfile,
                 kraje, vusc, okresy, orp, pou)
 
-    if obec or ku or ulice or parcely or stav_objekty or adresy:
-        import_obce(connection, schema, obec, ku, ulice,
+    if obec or ku or casti_obci or ulice or parcely or stav_objekty or adresy:
+        import_obce(connection, schema, obec, ku, casti_obci, ulice,
                 parcely, stav_objekty, adresy)
 
 def parse_args():
@@ -323,11 +328,12 @@ def parse_args():
     parser.add_argument('-v', action='store_true', help='Verbose')
     parser.add_argument('-kr', action='store_true', help='Naimportovat kraje')
     parser.add_argument('-vc', action='store_true', help='Naimportovat vyšší celky')
-    parser.add_argument('-ok', action='store_true', help='Naimportovat okrey')
+    parser.add_argument('-ok', action='store_true', help='Naimportovat okresy')
     parser.add_argument('-op', action='store_true', help='Naimportovat ORP')
     parser.add_argument('-pu', action='store_true', help='Naimportovat POU')
     parser.add_argument('-ob', action='store_true', help='Naimportovat obce')
     parser.add_argument('-ku', action='store_true', help='Naimportovat katastrální území')
+    parser.add_argument('-co', action='store_true', help='Naimportovat části obcí')
     parser.add_argument('-ul', action='store_true', help='Naimportovat ulice')
     parser.add_argument('-pa', action='store_true', help='Naimportovat parcely')
     parser.add_argument('-so', action='store_true', help='Naimportovat stavební objekty')
@@ -352,4 +358,4 @@ if __name__ == "__main__":
 
     main(args.connection, args.schema, args.v, args.input,
             args.kr, args.vc, args.ok, args.op, args.pu,
-            args.ob, args.ku, args.ul, args.pa, args.so, args.ad)
+            args.ob, args.ku, args.co, args.ul, args.pa, args.so, args.ad)
