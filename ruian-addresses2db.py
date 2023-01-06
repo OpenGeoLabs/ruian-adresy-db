@@ -39,6 +39,7 @@ License:
 """
 
 import argparse
+import sqlalchemy as sa
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, Date
@@ -161,22 +162,23 @@ def main(connection, schema=None, verbose=False, zipfile=None):
     if schema:
         Address.__table__.schema = schema
 
-    if engine.dialect.has_table(engine, "addresses", schema=schema):
+    inspect = sa.inspect(engine)
+
+    if inspect.has_table("addresses", schema=schema):
         Address.__table__.drop(engine)
 
     Address.__table__.create(engine)
 
-    Session = sessionmaker(bind=engine)
+    Session = sessionmaker(engine)
     session = Session()
 
-    epsg4326 = pyproj.Proj(init="epsg:4326")
+    epsg4326 = pyproj.Proj("epsg:4326")
     epsg5514 = pyproj.Proj(
         "+proj=krovak +lat_0=49.5 +lon_0=24.83333333333333 "
         "+alpha=30.28813972222222 +k=0.9999 +x_0=0 +y_0=0 +ellps=bessel "
         "+pm=greenwich +units=m +no_defs "
         "+towgs84=570.8,85.7,462.8,4.998,1.587,5.261,3.56")
-
-    project = partial(pyproj.transform, epsg5514, epsg4326)
+    project = pyproj.Transformer.from_proj(epsg5514, epsg4326).transform
 
     data = []
 
@@ -215,8 +217,8 @@ def main(connection, schema=None, verbose=False, zipfile=None):
                     cislo_orientacni=myint(cislo_orientacni),
                     cislo_orientacni_znak=cislo_orientacni_znak,
                     psc=psc, plati_od=plati_od,
-                    geometry="SRID=4326;{}".format(geometry_wgs.to_wkt()),
-                    geometry_jtsk="SRID=5514;{}".format(geometry.to_wkt())
+                    geometry="SRID=4326;{}".format(geometry_wgs.wkt),
+                    geometry_jtsk="SRID=5514;{}".format(geometry.wkt)
                 )
 
                 data.append(new_address)
